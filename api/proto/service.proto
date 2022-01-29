@@ -1,0 +1,22 @@
+syntax = "proto3";
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/empty.proto";
+
+import "metric.proto";
+
+option go_package = "./;api";
+
+service Metrics {
+ rpc GetMetrics(GetMetricsRequest) returns (stream GetMetricsResponse) {}
+}
+
+message GetMetricsRequest {
+ int32 notifyInterval = 1;
+ int32 averageCalcInterval = 2;
+}
+
+message GetMetricsResponse {
+ repeated metric.MetricGroup groups = 1;
+}
+
