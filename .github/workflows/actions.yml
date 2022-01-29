@@ -1,0 +1,78 @@
+name: Otus project
+
+on:
+  push:
+    branches:
+      - dev
+
+env:
+  GO111MODULE: "on"
+
+jobs:
+  lint:
+    strategy:
+      matrix:
+#        os: [ ubuntu-latest, windows-latest ]
+        os: [ ubuntu-latest ]
+    runs-on:  ${{ matrix.os }}
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v2
+
+      - name: Linters
+        uses: golangci/golangci-lint-action@v2
+        with:
+          version: v1.41.1
+          working-directory: ./
+
+  tests:
+    strategy:
+      matrix:
+        os: [ ubuntu-latest, windows-latest ]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Set up Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: ^1.16
+
+      - name: Check out code
+        uses: actions/checkout@v2
+
+      - name: Unit tests
+        run: go test -race -count 100 ./...
+
+  tests-long:
+    strategy:
+      matrix:
+        os: [ ubuntu-latest, windows-latest ]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Set up Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: ^1.16
+
+      - name: Check out code
+        uses: actions/checkout@v2
+
+      - name: Unit tests
+        run: go test --tags longtest -race ./...
+
+  build:
+    strategy:
+      matrix:
+            os: [ ubuntu-latest, windows-latest ]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Set up Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: ^1.16
+
+      - name: Check out code
+        uses: actions/checkout@v2
+
+      - name: Build
+        run: go build ./cmd/sysmon
+        working-directory: ./
