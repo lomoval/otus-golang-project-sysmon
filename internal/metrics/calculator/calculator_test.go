@@ -8,21 +8,21 @@ import (
 )
 
 func TestMetricCalcOne(t *testing.T) {
-	c := newCalc("test", time.Second)
+	c := newMetricCalc("test", time.Second)
 	c.Add(metric.Metric{Time: time.Now(), Name: "test", Value: 1})
 
-	m := c.Avg()
+	m := c.Average()
 
 	require.Equal(t, metric.Metric{Time: m.Time, Name: "test", Value: 1}, m)
 }
 
 func TestMetricCalcThree(t *testing.T) {
-	c := newCalc("test", time.Second*5)
+	c := newMetricCalc("test", time.Second*5)
 	c.Add(metric.Metric{Time: time.Now(), Name: "test", Value: 1})
 	c.Add(metric.Metric{Time: time.Now(), Name: "test", Value: 2})
 	c.Add(metric.Metric{Time: time.Now(), Name: "test", Value: 3})
 
-	m := c.Avg()
+	m := c.Average()
 
 	require.Equal(t, metric.Metric{Time: m.Time, Name: "test", Value: (1 + 2 + 3) / 3}, m)
 }
