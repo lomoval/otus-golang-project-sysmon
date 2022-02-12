@@ -98,8 +98,9 @@ func toApiMetrics(groups []metric.Group) []*api.MetricGroup {
 	apiGroups := make([]*api.MetricGroup, 0, len(groups))
 	for _, group := range groups {
 		apiGroup := api.MetricGroup{
-			Name:    group.Name,
-			Metrics: make([]*api.Metric, len(group.Metrics)),
+			Name:      group.Name,
+			Timestamp: timestamppb.New(group.Time),
+			Metrics:   make([]*api.Metric, len(group.Metrics)),
 		}
 		apiGroups = append(apiGroups, &apiGroup)
 		for i, m := range group.Metrics {

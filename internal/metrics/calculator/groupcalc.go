@@ -37,22 +37,22 @@ func (mc *groupCalc) Add(element *list.Element) {
 		if mc.lastElement == nil {
 			mc.lastElement = element
 		}
-		mc.removeObsolete()
+		mc.moveToActualElem()
 	}
 }
 
 func (mc *groupCalc) Average() metric.Group {
 	mc.mutex.Lock()
 	defer mc.mutex.Unlock()
-	mc.removeObsolete()
-	g := metric.Group{Name: mc.groupName, Metrics: make([]metric.Metric, 0, len(mc.calculators))}
+	mc.moveToActualElem()
+	g := metric.Group{Name: mc.groupName, Time: time.Now(), Metrics: make([]metric.Metric, 0, len(mc.calculators))}
 	for _, calc := range mc.calculators {
 		g.Metrics = append(g.Metrics, calc.Average())
 	}
 	return g
 }
 
-func (mc *groupCalc) removeObsolete() {
+func (mc *groupCalc) moveToActualElem() {
 	for e := mc.lastElement; e != nil; e = e.Next() {
 		for _, m := range e.Value.(metric.Group).Metrics {
 			if time.Since(m.Time) <= mc.calcInterval {
