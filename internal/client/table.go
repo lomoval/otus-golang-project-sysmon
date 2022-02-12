@@ -10,7 +10,8 @@ import (
 )
 
 const (
-	maxLines = 15
+	maxLines          = 15
+	valueColumnMinLen = 7
 )
 
 type table struct {
@@ -21,7 +22,7 @@ type table struct {
 	lineTemplate     string
 }
 
-func newTable(group *api.MetricGroup) *table {
+func newTable(group *api.MetricGroup) (*table, error) {
 	t := &table{lines: list.New()}
 
 	firstColumnLen := len(time.Now().Format(time.RFC3339))
@@ -32,25 +33,43 @@ func newTable(group *api.MetricGroup) *table {
 	t.lines = list.New()
 	t.columnsIndexes = make(map[string]int)
 
-	t.header = "|" + strings.Repeat(" ", firstColumnLen-len(group.GetName())) + group.GetName()
+	header := strings.Builder{}
+	if _, err := header.WriteString("|" + strings.Repeat(" ", firstColumnLen-len(group.GetName())) + group.GetName()); err != nil {
+		return nil, err
+	}
+	lineTemplate := strings.Builder{}
+	if _, err := lineTemplate.WriteString("|%" + strconv.Itoa(firstColumnLen) + "s"); err != nil {
+		return nil, err
+	}
 
-	t.lineTemplate = "|%" + strconv.Itoa(firstColumnLen) + "s"
 	for i, m := range group.GetMetrics() {
 		name := m.GetName()
-		columnMinLen := 7
+		columnMinLen := valueColumnMinLen
 		if len(name) > columnMinLen {
 			columnMinLen = len(name)
 		}
-		t.header += "|" + strings.Repeat(" ", columnMinLen-len(name)) + name
+		if _, err := header.WriteString("|" + strings.Repeat(" ", columnMinLen-len(name)) + name); err != nil {
+			return nil, err
+		}
 
-		t.lineTemplate += "|%" + strconv.Itoa(columnMinLen) + ".2f"
+		if _, err := lineTemplate.WriteString("|%" + strconv.Itoa(columnMinLen) + ".2f"); err != nil {
+			return nil, err
+		}
+
 		t.columnsIndexes[m.GetName()] = i
 	}
-	t.header += "|\n"
-	t.lineTemplate += "|\n"
+	if _, err := header.WriteString("|\n"); err != nil {
+		return nil, err
+	}
+	if _, err := lineTemplate.WriteString("|\n"); err != nil {
+		return nil, err
+	}
+
+	t.header = header.String()
+	t.lineTemplate = lineTemplate.String()
 	t.horizontalBorder = strings.Repeat("-", len(t.header)-1) + "\n"
 
-	return t
+	return t, nil
 }
 
 func (t *table) buildLine(values []interface{}) string {
