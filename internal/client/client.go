@@ -10,7 +10,6 @@ import (
 	"google.golang.org/grpc/status"
 	"net"
 	"strings"
-	"time"
 )
 
 type Client struct {
@@ -86,12 +85,7 @@ func (c *Client) printTable(group *api.MetricGroup) error {
 		}
 	}
 
-	values := make([]interface{}, len(group.GetMetrics())+1)
-	values[0] = group.Timestamp.AsTime().Format(time.RFC3339)
-	for _, metric := range group.Metrics {
-		values[c.table.columnsIndexes[metric.Name]+1] = metric.Value
-	}
-	c.table.addLine(c.table.buildLine(values))
+	c.table.addLine(group)
 	c.table.print()
 	return nil
 }

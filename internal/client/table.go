@@ -76,8 +76,14 @@ func (t *table) buildLine(values []interface{}) string {
 	return fmt.Sprintf(t.lineTemplate, values...)
 }
 
-func (t *table) addLine(line string) {
-	t.lines.PushBack(line)
+func (t *table) addLine(group *api.MetricGroup) {
+	values := make([]interface{}, len(group.GetMetrics())+1)
+	values[0] = group.Timestamp.AsTime().Format(time.RFC3339)
+	for _, metric := range group.Metrics {
+		values[t.columnsIndexes[metric.Name]+1] = metric.Value
+	}
+
+	t.lines.PushBack(t.buildLine(values))
 	if t.lines.Len() > maxLines {
 		t.lines.Remove(t.lines.Front())
 	}

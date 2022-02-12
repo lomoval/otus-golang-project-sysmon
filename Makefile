@@ -1,5 +1,6 @@
 BIN := "./bin/sysmon"
 DOCKER_IMG="sysmon:develop"
+DOCKER_IMG_CLIENT="sysmonclient:develop"
 
 GIT_HASH := $(shell git log --format="%h" -n 1)
 LDFLAGS := -X main.release="develop" -X main.buildDate=$(shell date -u +%Y-%m-%dT%H:%M:%S) -X main.gitHash=$(GIT_HASH)
@@ -16,12 +17,23 @@ build-img:
 		-t $(DOCKER_IMG) \
 		-f build/Dockerfile .
 
+build-img-client:
+	docker build \
+		--build-arg=LDFLAGS="$(LDFLAGS_CLIENTS)" \
+		-t $(DOCKER_IMG_CLIENT) \
+		-f build/Dockerfile-client .
+
 run-img: build-img
 	docker run $(DOCKER_IMG)
+
+run-img-client: build-img-client
+	docker run $(DOCKER_IMG_CLIENT)
 
 run-img-host: build-img
 	docker run --network host $(DOCKER_IMG)
 
+run-img-client-host: build-img-client
+	docker run --network host $(DOCKER_IMG_CLIENT)
 
 version: build
 	$(BIN) version
@@ -52,4 +64,4 @@ install-gen-deps:
 generate: install-gen-deps
 	go generate ./...
 
-.PHONY: build run build-img run-img version test lint
+.PHONY: build run build-img run-img run-img-client version test lint
