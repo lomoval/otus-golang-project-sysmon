@@ -116,7 +116,6 @@ func (c *Calculator) Start(
 				log.Debug("notifier goroutine done")
 				return
 			case <-notifyTicker.C:
-				log.Debug("notify")
 				if notifyTimeout != tmpNotifyInterval {
 					notifyTimeout = tmpNotifyInterval
 					notifyTicker.Reset(notifyTimeout)

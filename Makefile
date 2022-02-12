@@ -48,8 +48,6 @@ lint-fix: install-lint-deps
 install-gen-deps:
 	(which protoc-gen-go > /dev/null) || go install google.golang.org/protobuf/cmd/protoc-gen-go
 	(which protoc-gen-go-grpc > /dev/null) || go install google.golang.org/grpc/cmd/protoc-gen-go-grpc
-	(which protoc-gen-grpc-gateway > /dev/null) || go install github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-grpc-gateway
-	(which protoc-gen-openapiv2 > /dev/null) || go install github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2
 
 generate: install-gen-deps
 	go generate ./...
