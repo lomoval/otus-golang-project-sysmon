@@ -33,10 +33,12 @@ type Server struct {
 	grpcServer *grpc.Server
 	addr       string
 	collectors []metric.Collector
+	calc       *metriccalc.Calculator
 }
 
 func NewServer(config Config, collectors []metric.Collector) *Server {
-	return &Server{addr: net.JoinHostPort(config.Host, strconv.Itoa(config.Port)), collectors: collectors}
+	return &Server{addr: net.JoinHostPort(config.Host, strconv.Itoa(config.Port)), collectors: collectors,
+		calc: metriccalc.NewCalculator(collectors)}
 }
 
 func (s *Server) Start() error {
@@ -67,9 +69,9 @@ func (s *Server) GetMetrics(request *api.GetMetricsRequest, stream api.Metrics_G
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-	ch := metriccalc.Start(
+
+	ch := s.calc.Start(
 		ctx,
-		s.collectors,
 		time.Duration(request.GetNotifyInterval())*time.Second,
 		time.Duration(request.GetAverageCalcInterval())*time.Second,
 	)

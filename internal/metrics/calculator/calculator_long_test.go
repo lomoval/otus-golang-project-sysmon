@@ -43,14 +43,14 @@ func TestMetricExecutor(t *testing.T) {
 	defer cancel()
 
 	testMetric := &testMetricsCollector{name: "test"}
-	ch := Start(
+	ch := NewCalculator([]metric.Collector{testMetric}).Start(
 		ctx,
-		[]metric.Collector{testMetric},
 		time.Millisecond*2100,
 		time.Millisecond*2100,
 	)
 
 	m := <-ch
+	cancel()
 	require.NotEmpty(t, m)
 	require.True(t, (2.0+3.0)/2.0 == m[0].Metrics[0].Value || (1.0+2.0+3.0)/3.0 == m[0].Metrics[0].Value)
 }
@@ -60,11 +60,10 @@ func TestMetricExecutorFirstBiggerNotifyInterval(t *testing.T) {
 	defer cancel()
 
 	testMetric := &testMetricsCollector{name: "test"}
-	ch := Start(
+	ch := NewCalculator([]metric.Collector{testMetric}).Start(
 		ctx,
-		[]metric.Collector{testMetric},
-		time.Millisecond*500,
-		time.Millisecond*1100,
+		time.Millisecond*100,
+		time.Millisecond*1500,
 	)
 
 	m := <-ch
@@ -85,9 +84,8 @@ func TestMetricExecutorSeveralMetrics(t *testing.T) {
 		testMetric2.name: testMetric2,
 		testMetric3.name: testMetric3,
 	}
-	ch := Start(
+	ch := NewCalculator([]metric.Collector{testMetric1, testMetric2, testMetric3}).Start(
 		ctx,
-		[]metric.Collector{testMetric1, testMetric2, testMetric3},
 		time.Millisecond*1500,
 		time.Millisecond*2500,
 	)
