@@ -14,17 +14,16 @@ import (
 )
 
 type Client struct {
-	host         string
-	port         string
-	table        *table
-	receiveCount int
+	host  string
+	port  string
+	table *table
 }
 
 func New(host string, port string) *Client {
 	return &Client{host: host, port: port}
 }
 
-func (c *Client) GetMetrics(ctx context.Context, groupName string, avgInterval int, notifyInterval int) error {
+func (c *Client) Start(ctx context.Context, groupName string, avgInterval int, notifyInterval int) error {
 	conn, err := grpc.Dial(
 		net.JoinHostPort(c.host, c.port),
 		grpc.WithTransportCredentials(insecure.NewCredentials()))
@@ -59,8 +58,9 @@ func (c *Client) GetMetrics(ctx context.Context, groupName string, avgInterval i
 		found := false
 		for _, group := range response.GetGroups() {
 			if strings.EqualFold(group.GetName(), strings.ToLower(groupName)) {
-				c.receiveCount++
-				c.printTable(group)
+				if err := c.printTable(group); err != nil {
+					return err
+				}
 				found = true
 				break
 			}
@@ -71,10 +71,14 @@ func (c *Client) GetMetrics(ctx context.Context, groupName string, avgInterval i
 	}
 }
 
-func (c *Client) printTable(group *api.MetricGroup) {
+func (c *Client) printTable(group *api.MetricGroup) error {
 	switch c.table {
 	case nil:
-		c.table = newTable(group)
+		var err error
+		c.table, err = newTable(group)
+		if err != nil {
+			return err
+		}
 	default:
 		// Move cursor to start of table to redraw
 		for i := 0; i < c.table.height(); i++ {
@@ -89,4 +93,5 @@ func (c *Client) printTable(group *api.MetricGroup) {
 	}
 	c.table.addLine(c.table.buildLine(values))
 	c.table.print()
+	return nil
 }

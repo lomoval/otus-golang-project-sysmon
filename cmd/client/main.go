@@ -45,7 +45,7 @@ func main() {
 	defer cancel()
 
 	c := client.New(host, port)
-	if err := c.GetMetrics(ctx, metricName, avgInt, notifyInt); err != nil {
+	if err := c.Start(ctx, metricName, avgInt, notifyInt); err != nil {
 		fmt.Printf("client failed: %s", err)
 	}
 }
